@@ -5,4 +5,4 @@ runner = "probe-rs run --chip STM32WLE5JC"
 target = "thumbv7em-none-eabi"
 
 [env]
-DEFMT_LOG = "debug"
+DEFMT_LOG = "trace"
