@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use defmt::{error, info, warn};
+use defmt::{error, info};
 use embassy_executor::Spawner;
 use embassy_stm32::{
     Config,
@@ -11,11 +11,12 @@ use embassy_stm32::{
 };
 use embassy_time::{Duration, Timer};
 use stm32wle5jc_radio::{
-    RadioError,
-    modulations::lora::{Bandwidth, LoraConfig, LoraRadio, SpreadingFactor},
+    modulations::
+        bpsk::{Bitrate, BpskConfig, BpskRadio}
+    ,
     radio::{PaSelection, Radio},
     spi::SubGhzSpiDevice,
-    traits::{Configure, Receive, Transmit},
+    traits::{Configure, Transmit},
 };
 use {defmt_rtt as _, panic_probe as _};
 
@@ -37,30 +38,21 @@ async fn main(_spawner: Spawner) {
     let mut radio = Radio::new(spi, rf_tx, rf_rx, rf_en);
     radio.init().await.unwrap();
 
-    let mut lora = LoraRadio::new(&mut radio);
-    lora.configure(&LoraConfig {
+    let mut bpsk = BpskRadio::new(&mut radio);
+    bpsk.configure(&BpskConfig {
         frequency: 868_100_000,
-        sf: SpreadingFactor::SF9,
-        bw: Bandwidth::Bw7_8kHz,
+        bitrate: Bitrate::Bps600,
         pa: PaSelection::HighPower,
-        power_dbm: 22,
+        power_dbm: 17,
         ..Default::default()
     })
     .await
     .unwrap();
 
     info!("sending stuffs");
-    match lora.tx(b"hiiiiiII!").await {
+    match bpsk.tx(b"hiiiiiII!").await {
         Ok(_) => info!("yay :3"),
         Err(e) => error!("tx error: {:?}", e),
-    }
-
-    info!("waiting for packet...");
-    let mut buf = [0u8; 255];
-    match lora.rx(&mut buf, 1_000).await {
-        Ok(len) => info!("rx {} bytes: {:x}", len, &buf[..len]),
-        Err(RadioError::Timeout) => warn!("no packet received (timeout)"),
-        Err(e) => error!("rx error: {:?}", e),
     }
 
     loop {
