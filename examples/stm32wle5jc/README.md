@@ -4,11 +4,11 @@ Simple rx/tx examples targeting the STM32WLE5JC chip (tested on LoRa E5-mini boa
 
 ## Building and running
 ```sh
-cargo build --release
+cargo build --release --bin <name> # eg. bpsk_tx
 ```
 
 ```sh
-cargo run --release
+cargo run --release --bin <name> # eg. bpsk_tx
 ```
 
 The run command should automatically use `probe-rs` to flash the compiled binary on the microcontroller.
