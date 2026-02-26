@@ -88,6 +88,16 @@ pub enum PaSelection {
     HighPower,
 }
 
+/// RX gain setting (register 0x08AC)
+#[derive(Clone, Copy, defmt::Format)]
+#[repr(u8)]
+pub enum RxGain {
+    /// Power saving gain
+    PowerSaving = 0x94,
+    /// Boosted gain (better sensitivity)
+    Boosted = 0x96,
+}
+
 /// Standby mode clock source
 #[derive(Clone, Copy, defmt::Format)]
 #[repr(u8)]
