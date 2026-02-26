@@ -38,7 +38,7 @@ async fn main(_spawner: Spawner) {
     lora.configure(&LoraConfig {
         frequency: 868_100_000,
         sf: SpreadingFactor::SF9,
-        bw: Bandwidth::Bw7_8kHz,
+        bw: Bandwidth::Bw20_83kHz,
         pa: PaSelection::HighPower,
         power_dbm: 22,
         ..Default::default()
@@ -46,11 +46,11 @@ async fn main(_spawner: Spawner) {
     .await
     .unwrap();
 
-    info!("waiting for packet...");
+    info!("waiting for lora stuffs...");
     let mut buf = [0u8; 255];
     match lora.rx(&mut buf, 5_000).await {
-        Ok(len) => info!("rx {} bytes: {:x}", len, &buf[..len]),
-        Err(RadioError::Timeout) => warn!("no packet received (timeout)"),
+        Ok(len) => info!("yay :3 got {} bytes: {:x}", len, &buf[..len]),
+        Err(RadioError::Timeout) => warn!("nobody is talking to me :<"),
         Err(e) => error!("rx error: {:?}", e),
     }
 

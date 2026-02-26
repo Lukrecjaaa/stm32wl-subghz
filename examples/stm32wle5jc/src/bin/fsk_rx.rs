@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use defmt::{error, info};
+use defmt::{error, info, warn};
 use embassy_executor::Spawner;
 use embassy_stm32::{
     Config,
@@ -10,8 +10,8 @@ use embassy_stm32::{
     spi::Spi,
 };
 use stm32wl_subghz::{
-    Configure, PaSelection, Radio, SubGhzSpiDevice, Transmit,
-    modulations::bpsk::{Bitrate, BpskConfig, BpskRadio},
+    Configure, PaSelection, Radio, RadioError, Receive, SubGhzSpiDevice,
+    modulations::fsk::{Bandwidth, Bitrate, FreqDev, FskConfig, FskRadio},
 };
 use {defmt_rtt as _, panic_probe as _};
 
@@ -33,10 +33,12 @@ async fn main(_spawner: Spawner) {
     let mut radio = Radio::new(spi, rf_tx, rf_rx, rf_en);
     radio.init().await.unwrap();
 
-    let mut bpsk = BpskRadio::new(&mut radio);
-    bpsk.configure(&BpskConfig {
+    let mut fsk = FskRadio::new(&mut radio);
+    fsk.configure(&FskConfig {
         frequency: 868_100_000,
-        bitrate: Bitrate::Bps600,
+        bitrate: Bitrate::Custom(600),
+        fdev: FreqDev::Hz(32_000),
+        bandwidth: Bandwidth::Bw78_2kHz, // >= 2 * (32000 + 600/2) = 64.6 kHz
         pa: PaSelection::HighPower,
         power_dbm: 22,
         ..Default::default()
@@ -44,9 +46,11 @@ async fn main(_spawner: Spawner) {
     .await
     .unwrap();
 
-    info!("sending bpsk stuffs");
-    match bpsk.tx(b"hiiiii hello :3 :3 :3 this is a looooooooooooooooong text! very long :> and cute! :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 ummmm urghhh awwwooooooo woof wooooof woof").await {
-        Ok(_) => info!("yay tx done :3"),
-        Err(e) => error!("tx error: {:?}", e),
+    info!("waiting for fsk stuffs...");
+    let mut buf = [0u8; 255];
+    match fsk.rx(&mut buf, 5_000).await {
+        Ok(len) => info!("yay :3 got {} bytes: {:x}", len, &buf[..len]),
+        Err(RadioError::Timeout) => warn!("nobody is talking to me :<"),
+        Err(e) => error!("rx error: {:?}", e),
     }
 }

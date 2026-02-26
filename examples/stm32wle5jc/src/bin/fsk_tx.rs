@@ -11,7 +11,7 @@ use embassy_stm32::{
 };
 use stm32wl_subghz::{
     Configure, PaSelection, Radio, SubGhzSpiDevice, Transmit,
-    modulations::bpsk::{Bitrate, BpskConfig, BpskRadio},
+    modulations::fsk::{Bitrate, FreqDev, FskConfig, FskRadio},
 };
 use {defmt_rtt as _, panic_probe as _};
 
@@ -33,10 +33,11 @@ async fn main(_spawner: Spawner) {
     let mut radio = Radio::new(spi, rf_tx, rf_rx, rf_en);
     radio.init().await.unwrap();
 
-    let mut bpsk = BpskRadio::new(&mut radio);
-    bpsk.configure(&BpskConfig {
+    let mut fsk = FskRadio::new(&mut radio);
+    fsk.configure(&FskConfig {
         frequency: 868_100_000,
-        bitrate: Bitrate::Bps600,
+        bitrate: Bitrate::Custom(600),
+        fdev: FreqDev::Hz(32_000),
         pa: PaSelection::HighPower,
         power_dbm: 22,
         ..Default::default()
@@ -44,8 +45,8 @@ async fn main(_spawner: Spawner) {
     .await
     .unwrap();
 
-    info!("sending bpsk stuffs");
-    match bpsk.tx(b"hiiiii hello :3 :3 :3 this is a looooooooooooooooong text! very long :> and cute! :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 ummmm urghhh awwwooooooo woof wooooof woof").await {
+    info!("sending fsk stuffs");
+    match fsk.tx(b"hiiiii hello :3 :3 :3 this is a looooooooooooooooong text! very long :> and cute! :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 ummmm urghhh awwwooooooo woof wooooof woof").await {
         Ok(_) => info!("yay tx done :3"),
         Err(e) => error!("tx error: {:?}", e),
     }

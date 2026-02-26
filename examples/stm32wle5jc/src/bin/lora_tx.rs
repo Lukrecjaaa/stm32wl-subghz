@@ -9,7 +9,6 @@ use embassy_stm32::{
     rcc::{MSIRange, Sysclk, mux},
     spi::Spi,
 };
-use embassy_time::{Duration, Timer};
 use stm32wl_subghz::{
     Configure, PaSelection, Radio, SubGhzSpiDevice, Transmit,
     modulations::lora::{Bandwidth, LoraConfig, LoraRadio, SpreadingFactor},
@@ -38,7 +37,7 @@ async fn main(_spawner: Spawner) {
     lora.configure(&LoraConfig {
         frequency: 868_100_000,
         sf: SpreadingFactor::SF9,
-        bw: Bandwidth::Bw7_8kHz,
+        bw: Bandwidth::Bw20_83kHz,
         pa: PaSelection::HighPower,
         power_dbm: 22,
         ..Default::default()
@@ -46,13 +45,9 @@ async fn main(_spawner: Spawner) {
     .await
     .unwrap();
 
-    info!("sending stuffs");
-    match lora.tx(b"hiiiiiII!").await {
-        Ok(_) => info!("yay :3"),
+    info!("sending lora stuffs");
+    match lora.tx(b"hiiiii hello :3 :3 :3 this is a looooooooooooooooong text! very long :> and cute! :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 :3 ummmm urghhh awwwooooooo woof wooooof woof").await {
+        Ok(_) => info!("yay tx done :3"),
         Err(e) => error!("tx error: {:?}", e),
-    }
-
-    loop {
-        Timer::after(Duration::from_secs(1)).await;
     }
 }
