@@ -3,7 +3,7 @@ use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
 use crate::error::RadioError;
-use crate::radio::{PaSelection, PacketType, Radio, RampTime, irq};
+use crate::radio::{PaSelection, PacketType, Radio, RampTime, RxGain, irq};
 use crate::traits::{Configure, Receive, Transmit};
 
 #[derive(Clone, Copy, defmt::Format)]
@@ -57,6 +57,7 @@ pub struct LoraConfig {
     pub crc_on: bool,
     pub iq_inverted: bool,
     pub sync_word: u16,
+    pub rx_gain: RxGain,
     pub pa: PaSelection,
     pub power_dbm: i8,
     pub ramp: RampTime,
@@ -75,6 +76,7 @@ impl Default for LoraConfig {
             crc_on: true,
             iq_inverted: false,
             sync_word: 0x1424, // private LoRa network
+            rx_gain: RxGain::PowerSaving,
             pa: PaSelection::LowPower,
             power_dbm: 14,
             ramp: RampTime::Us40,
@@ -235,8 +237,10 @@ impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Receive
         // Stop RX timer on preamble detection (required for proper RX behavior)
         self.radio.set_stop_rx_timer_on_preamble(true).await?;
 
-        // Set RX gain (0x94 = normal, 0x96 = boosted)
-        self.radio.write_register(0x08AC, &[0x94]).await?;
+        // Set RX gain
+        self.radio
+            .write_register(0x08AC, &[self.config.rx_gain as u8])
+            .await?;
 
         // Convert ms to 15.625µs steps (ms * 64), 0 = single mode, 0xFFFFFF = continuous
         let timeout_steps = if timeout_ms == 0 {
