@@ -2,7 +2,11 @@ use defmt::debug;
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
-use crate::{RadioError, radio::{PaSelection, PacketType, Radio, RampTime, irq}, traits::{Configure, Transmit}};
+use crate::{
+    RadioError,
+    radio::{PaSelection, PacketType, Radio, RampTime, irq},
+    traits::{Configure, Transmit},
+};
 
 /// BPSK bitrate
 /// Formula: register = (32 * 32_000_000) / bps
@@ -79,9 +83,7 @@ impl<'a, SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin>
 
     /// Send the full SetPacketParams command with the given payload length
     async fn send_packet_params(&mut self, payload_len: u8) -> Result<(), RadioError> {
-        self.radio
-            .set_packet_params(&[payload_len])
-            .await
+        self.radio.set_packet_params(&[payload_len]).await
     }
 }
 
@@ -96,7 +98,6 @@ impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Configure
         // Select BPSK packet type
         self.radio.set_packet_type(PacketType::Bpsk).await?;
 
-
         // Payload length updated per tx
         self.send_packet_params(0).await?;
 
@@ -107,11 +108,12 @@ impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Configure
         let br = config.bitrate.to_bytes();
         self.radio
             .set_modulation_params(&[br[0], br[1], br[2], 0x16])
-        .await?;
+            .await?;
 
         // PA config + TX power
         self.radio
-            .set_output_power(config.pa, config.power_dbm, config.ramp).await?;
+            .set_output_power(config.pa, config.power_dbm, config.ramp)
+            .await?;
 
         Ok(())
     }

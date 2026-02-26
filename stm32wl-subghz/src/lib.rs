@@ -8,3 +8,6 @@ pub mod spi;
 pub mod traits;
 
 pub use error::RadioError;
+pub use radio::{PaSelection, Radio};
+pub use spi::SubGhzSpiDevice;
+pub use traits::{Configure, Receive, Transmit};

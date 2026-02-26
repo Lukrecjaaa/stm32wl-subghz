@@ -10,13 +10,9 @@ use embassy_stm32::{
     spi::Spi,
 };
 use embassy_time::{Duration, Timer};
-use stm32wle5jc_radio::{
-    modulations::
-        bpsk::{Bitrate, BpskConfig, BpskRadio}
-    ,
-    radio::{PaSelection, Radio},
-    spi::SubGhzSpiDevice,
-    traits::{Configure, Transmit},
+use stm32wl_subghz::{
+    Configure, PaSelection, Radio, SubGhzSpiDevice, Transmit,
+    modulations::bpsk::{Bitrate, BpskConfig, BpskRadio},
 };
 use {defmt_rtt as _, panic_probe as _};
 
@@ -50,7 +46,7 @@ async fn main(_spawner: Spawner) {
     .unwrap();
 
     info!("sending stuffs");
-    match bpsk.tx(b"hiiiiiII!").await {
+    match bpsk.tx(b"hiiiii!").await {
         Ok(_) => info!("yay :3"),
         Err(e) => error!("tx error: {:?}", e),
     }

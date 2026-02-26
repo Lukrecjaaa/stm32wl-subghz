@@ -3,7 +3,7 @@ use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
 use crate::error::RadioError;
-use crate::radio::{PacketType, PaSelection, Radio, RampTime, irq};
+use crate::radio::{PaSelection, PacketType, Radio, RampTime, irq};
 use crate::traits::{Configure, Receive, Transmit};
 
 #[derive(Clone, Copy, defmt::Format)]
@@ -162,7 +162,9 @@ impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Configure
             let mut iqpol = [0u8; 1];
             self.radio.read_register(0x0736, &mut iqpol).await?;
             trace!("Got data {:x}", iqpol);
-            self.radio.write_register(0x0736, &[iqpol[0] | 0x04]).await?;
+            self.radio
+                .write_register(0x0736, &[iqpol[0] | 0x04])
+                .await?;
         }
 
         // Sync word at SUBGHZ_LSYNCR (0x0740)
