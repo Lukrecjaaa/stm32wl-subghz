@@ -178,7 +178,7 @@ impl Default for FskConfig {
             // default values taken from RF0461 reference manual
             sync_word: [0x97, 0x23, 0x52, 0x25, 0x56, 0x53, 0x65, 0x64],
             addr_comp: AddrComp::Off,
-            packet_type: PacketLengthType::Fixed,
+            packet_type: PacketLengthType::Variable,
             crc: CrcType::Crc2Byte,
             whitening: true,
             rx_gain: RxGain::Boosted,

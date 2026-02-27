@@ -37,8 +37,8 @@ async fn main(_spawner: Spawner) {
     fsk.configure(&FskConfig {
         frequency: 868_100_000,
         bitrate: Bitrate::Custom(600),
-        fdev: FreqDev::Hz(32_000),
-        bandwidth: Bandwidth::Bw78_2kHz, // >= 2 * (32000 + 600/2) = 64.6 kHz
+        fdev: FreqDev::Hz(380),
+        bandwidth: Bandwidth::Bw4_8kHz, // >= 2 * (380 + 600/2) = 1.36kHz
         pa: PaSelection::HighPower,
         power_dbm: 22,
         ..Default::default()
