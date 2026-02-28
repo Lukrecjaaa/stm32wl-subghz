@@ -15,36 +15,39 @@ members = ["examples/stm32wle5jc"]
 # Default chip for development/CI. Downstream users should use default-features = false
 # and enable their specific chip feature.
 default = ["stm32wle5jc"]
+# Hardware abstraction layer, which enables embedded radio driver and all hardware deps
+# When it's disabled, some parts of the code, such as BPSK frame decoding, can be used
+hal = ["dep:embassy-stm32", "dep:embassy-time", "dep:defmt", "dep:cortex-m", "dep:embedded-hal", "dep:embedded-hal-async"]
 # Single-core variants
-stm32wle4c8 = ["embassy-stm32/stm32wle4c8"]
-stm32wle4cb = ["embassy-stm32/stm32wle4cb"]
-stm32wle4cc = ["embassy-stm32/stm32wle4cc"]
-stm32wle4j8 = ["embassy-stm32/stm32wle4j8"]
-stm32wle4jb = ["embassy-stm32/stm32wle4jb"]
-stm32wle4jc = ["embassy-stm32/stm32wle4jc"]
-stm32wle5c8 = ["embassy-stm32/stm32wle5c8"]
-stm32wle5cb = ["embassy-stm32/stm32wle5cb"]
-stm32wle5cc = ["embassy-stm32/stm32wle5cc"]
-stm32wle5j8 = ["embassy-stm32/stm32wle5j8"]
-stm32wle5jb = ["embassy-stm32/stm32wle5jb"]
-stm32wle5jc = ["embassy-stm32/stm32wle5jc"]
+stm32wle4c8 = ["hal", "embassy-stm32/stm32wle4c8"]
+stm32wle4cb = ["hal", "embassy-stm32/stm32wle4cb"]
+stm32wle4cc = ["hal", "embassy-stm32/stm32wle4cc"]
+stm32wle4j8 = ["hal", "embassy-stm32/stm32wle4j8"]
+stm32wle4jb = ["hal", "embassy-stm32/stm32wle4jb"]
+stm32wle4jc = ["hal", "embassy-stm32/stm32wle4jc"]
+stm32wle5c8 = ["hal", "embassy-stm32/stm32wle5c8"]
+stm32wle5cb = ["hal", "embassy-stm32/stm32wle5cb"]
+stm32wle5cc = ["hal", "embassy-stm32/stm32wle5cc"]
+stm32wle5j8 = ["hal", "embassy-stm32/stm32wle5j8"]
+stm32wle5jb = ["hal", "embassy-stm32/stm32wle5jb"]
+stm32wle5jc = ["hal", "embassy-stm32/stm32wle5jc"]
 # Dual-core variants
-stm32wl54cc-cm0p = ["embassy-stm32/stm32wl54cc-cm0p"]
-stm32wl54cc-cm4 = ["embassy-stm32/stm32wl54cc-cm4"]
-stm32wl54jc-cm0p = ["embassy-stm32/stm32wl54jc-cm0p"]
-stm32wl54jc-cm4 = ["embassy-stm32/stm32wl54jc-cm4"]
-stm32wl55cc-cm0p = ["embassy-stm32/stm32wl55cc-cm0p"]
-stm32wl55cc-cm4 = ["embassy-stm32/stm32wl55cc-cm4"]
-stm32wl55jc-cm0p = ["embassy-stm32/stm32wl55jc-cm0p"]
-stm32wl55jc-cm4 = ["embassy-stm32/stm32wl55jc-cm4"]
+stm32wl54cc-cm0p = ["hal", "embassy-stm32/stm32wl54cc-cm0p"]
+stm32wl54cc-cm4 = ["hal", "embassy-stm32/stm32wl54cc-cm4"]
+stm32wl54jc-cm0p = ["hal", "embassy-stm32/stm32wl54jc-cm0p"]
+stm32wl54jc-cm4 = ["hal", "embassy-stm32/stm32wl54jc-cm4"]
+stm32wl55cc-cm0p = ["hal", "embassy-stm32/stm32wl55cc-cm0p"]
+stm32wl55cc-cm4 = ["hal", "embassy-stm32/stm32wl55cc-cm4"]
+stm32wl55jc-cm0p = ["hal", "embassy-stm32/stm32wl55jc-cm0p"]
+stm32wl55jc-cm4 = ["hal", "embassy-stm32/stm32wl55jc-cm4"]
 
 [dependencies]
-embassy-stm32 = { version = "0.5.0", features = ["unstable-pac"] }
-embassy-time = "0.5.0"
-defmt = "1.0.1"
-cortex-m = { version = "0.7.6", features = ["inline-asm"] }
-embedded-hal = "1.0.0"
-embedded-hal-async = "1.0.0"
+embassy-stm32 = { version = "0.5.0", features = ["unstable-pac"], optional = true }
+embassy-time = { version = "0.5.0", optional = true }
+defmt = { version = "1.0.1", optional = true }
+cortex-m = { version = "0.7.6", features = ["inline-asm"], optional = true }
+embedded-hal = { version = "1.0.0", optional = true }
+embedded-hal-async = { version = "1.0.0", optional = true }
 
 [profile.release]
 debug = 2

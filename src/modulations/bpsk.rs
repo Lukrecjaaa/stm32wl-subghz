@@ -1,16 +1,24 @@
+#[cfg(feature = "hal")]
 use defmt::debug;
+#[cfg(feature = "hal")]
 use embedded_hal::digital::OutputPin;
+#[cfg(feature = "hal")]
 use embedded_hal_async::spi::SpiDevice;
 
+#[cfg(feature = "hal")]
 use crate::{
     RadioError,
     radio::{PaSelection, PacketType, Radio, RampTime, irq},
     traits::{Configure, Transmit},
 };
 
+#[cfg(not(feature = "hal"))]
+use std::vec::Vec;
+
 /// BPSK bitrate
 /// Formula: register = (32 * 32_000_000) / bps
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "hal", derive(defmt::Format))]
 pub enum Bitrate {
     /// 100 bits per second
     Bps100,
@@ -22,7 +30,7 @@ pub enum Bitrate {
 
 impl Bitrate {
     /// Get the 3-byte register value for this bitrate
-    fn to_bytes(self) -> [u8; 3] {
+    pub fn to_bytes(self) -> [u8; 3] {
         let val = match self {
             Bitrate::Bps100 => 0x9C4000,
             Bitrate::Bps600 => 0x1A0AAA,
@@ -32,7 +40,8 @@ impl Bitrate {
     }
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "hal", derive(defmt::Format))]
 pub enum CrcType {
     None,
     /// Using a common 0x07 polynomial
@@ -42,7 +51,7 @@ pub enum CrcType {
 }
 
 impl CrcType {
-    fn compute(self, data: &[u8]) -> (u16, usize) {
+    pub fn compute(self, data: &[u8]) -> (u16, usize) {
         match self {
             CrcType::None => (0, 0),
             CrcType::Crc8 => {
@@ -76,7 +85,7 @@ impl CrcType {
         }
     }
 
-    fn write(self, crc: u16, buf: &mut [u8]) {
+    pub fn write(self, crc: u16, buf: &mut [u8]) {
         match self {
             CrcType::None => {}
             CrcType::Crc8 => {
@@ -90,14 +99,15 @@ impl CrcType {
     }
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "hal", derive(defmt::Format))]
 pub enum Whitening {
     None,
     Ccitt,
 }
 
 impl Whitening {
-    fn apply(self, seed: u16, data: &mut [u8]) {
+    pub fn apply(self, seed: u16, data: &mut [u8]) {
         match self {
             Whitening::None => return,
             Whitening::Ccitt => {}
@@ -117,7 +127,20 @@ impl Whitening {
     }
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[cfg(not(feature = "hal"))]
+pub struct DecodeResult {
+    /// On which bit the sync word was found
+    pub bit_offset: usize,
+    /// Signal was phase-inverted
+    pub inverted: bool,
+    /// Decoded payload
+    pub payload: Vec<u8>,
+    /// CRC matches
+    pub crc_valid: bool,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "hal", derive(defmt::Format))]
 pub enum BpskPacket {
     /// No framing, just send raw data
     Raw,
@@ -129,8 +152,6 @@ pub enum BpskPacket {
         sync_word: [u8; 32],
         /// Sync word length
         sync_word_len: usize,
-        /// Enable/disable reporting length in the packet
-        include_len: bool,
         /// CRC size (0, 1 or 2 bytes)
         crc_type: CrcType,
         /// Whitening algorithm
@@ -145,42 +166,46 @@ impl BpskPacket {
         Self::Framing {
             preamble_len: 32,
             // Baker-13 code (2 bytes)
-            sync_word: [0x1F, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+            sync_word: [
+                0x1F, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+            ],
             sync_word_len: 2,
-            include_len: true,
             crc_type: CrcType::Crc16,
             whitening: Whitening::Ccitt,
             whitening_seed: 0x1FF,
         }
     }
 
-    fn to_bytes(self, payload: &[u8], buf: &mut [u8]) -> Result<u8, RadioError> {
+    #[cfg(feature = "hal")]
+    pub fn to_bytes(self, payload: &[u8], buf: &mut [u8]) -> Result<u8, RadioError> {
         match self {
             BpskPacket::Raw => {
                 // Simple copy operation, no modifications made
                 buf[..payload.len()].copy_from_slice(payload);
-                payload.len().try_into().map_err(|_| RadioError::PayloadTooLarge)
+                payload
+                    .len()
+                    .try_into()
+                    .map_err(|_| RadioError::PayloadTooLarge)
             }
             BpskPacket::Framing {
                 preamble_len,
                 sync_word,
                 sync_word_len,
-                include_len,
                 crc_type,
                 whitening,
                 whitening_seed,
             } => {
-                let len_field_size = if include_len { 1 } else { 0 };
+                let len_field_size = 1;
                 let crc_size = match crc_type {
                     CrcType::None => 0,
                     CrcType::Crc8 => 1,
                     CrcType::Crc16 => 2,
                 };
                 // Validate packet length
-                let total = preamble_len + sync_word_len + len_field_size + payload.len() + crc_size;
+                let total =
+                    preamble_len + sync_word_len + len_field_size + payload.len() + crc_size;
 
                 if total > buf.len() {
                     return Err(RadioError::PayloadTooLarge);
@@ -200,12 +225,13 @@ impl BpskPacket {
                 // Actual payload starts here
                 let data_start = pos;
 
-                // If enabled in the config, write length info
-                if include_len {
-                    let payload_len: u8 = payload.len().try_into().map_err(|_| RadioError::PayloadTooLarge)?;
-                    buf[pos] = payload_len;
-                    pos += 1;
-                }
+                // Write length info
+                let payload_len: u8 = payload
+                    .len()
+                    .try_into()
+                    .map_err(|_| RadioError::PayloadTooLarge)?;
+                buf[pos] = payload_len;
+                pos += 1;
 
                 // Copy the original payload itself
                 buf[pos..pos + payload.len()].copy_from_slice(payload);
@@ -224,8 +250,127 @@ impl BpskPacket {
             }
         }
     }
+
+    #[cfg(not(feature = "hal"))]
+    pub fn decode(&self, data: &[u8]) -> Vec<DecodeResult> {
+        match self {
+            // Can't do much with Raw packets so just return the same data and accept as valid
+            BpskPacket::Raw => vec![DecodeResult {
+                bit_offset: 0,
+                inverted: false,
+                payload: data.to_vec(),
+                crc_valid: true,
+            }],
+            BpskPacket::Framing {
+                preamble_len: _,
+                sync_word,
+                sync_word_len,
+                crc_type,
+                whitening,
+                whitening_seed,
+            } => {
+                let sync_word = &sync_word[..*sync_word_len];
+                let sync_bits = sync_word_len * 8;
+                let total_bits = data.len() * 8;
+                let mut results = Vec::new();
+
+                let crc_len = match crc_type {
+                    CrcType::None => 0,
+                    CrcType::Crc8 => 1,
+                    CrcType::Crc16 => 2,
+                };
+
+                // Go through every bit, giving space to the sync word length
+                for i in 0..total_bits.saturating_sub(sync_bits) {
+                    let mut matching: usize = 0;
+                    for j in 0..sync_bits {
+                        // Compare the sync word bit-by-bit against the data stream
+                        let data_bit = (data[(i + j) / 8] >> (7 - ((i + j) % 8))) & 1;
+                        let sync_bit = (sync_word[j / 8] >> (7 - (j % 8))) & 1;
+
+                        if data_bit == sync_bit {
+                            matching += 1;
+                        }
+                    }
+
+                    // Allow up to 2 bit errors, if <= 2 bits match or unmatch, it's an accepted
+                    // normal or phase-inverted data
+                    let inverted = if sync_bits - matching <= 2 {
+                        false
+                    } else if matching <= 2 {
+                        true
+                    } else {
+                        continue;
+                    };
+
+                    // Extract bytes that happen after the sync word is found at any bit offset
+                    let bit_start = i + sync_bits;
+                    let remaining_bytes = (total_bits - bit_start) / 8;
+                    if remaining_bytes == 0 {
+                        continue;
+                    }
+
+                    // Reassemble bytes from arbitrary bit positions after sync word is found at offset `i`
+                    let mut raw = vec![0u8; remaining_bytes];
+                    for b in 0..remaining_bytes {
+                        let mut byte = 0u8;
+                        for bit in 0..8 {
+                            let idx = bit_start + b * 8 + bit;
+                            let mut val = (data[idx / 8] >> (7 - (idx % 8))) & 1;
+                            // Handle the 180 degree phase ambiguity
+                            if inverted {
+                                val ^= 1;
+                            }
+
+                            byte |= val << (7 - bit);
+                        }
+                        raw[b] = byte;
+                    }
+
+                    // De-whiten by applying the same whitening operation again (it's reversible)
+                    whitening.apply(*whitening_seed, &mut raw);
+
+                    // Extract payload length
+                    let (payload_start, payload_len) = (1, raw[0] as usize);
+
+                    if payload_len == 0 {
+                        continue;
+                    }
+
+                    if payload_start + payload_len + crc_len > raw.len() {
+                        continue;
+                    }
+
+                    // Verify CRC over len field and payload
+                    let crc_data = &raw[..payload_start + payload_len];
+                    let (crc_computed, _) = crc_type.compute(crc_data);
+
+                    let crc_valid = match crc_type {
+                        CrcType::None => true,
+                        CrcType::Crc8 => raw[payload_start + payload_len] == crc_computed as u8,
+                        CrcType::Crc16 => {
+                            // Assemble u16 from two bytes
+                            let received = ((raw[payload_start + payload_len] as u16) << 8)
+                                | raw[payload_start + payload_len + 1] as u16;
+                            received == crc_computed
+                        }
+                    };
+
+                    results.push(DecodeResult {
+                        bit_offset: i,
+                        inverted,
+                        payload: raw[payload_start..payload_start + payload_len].to_vec(),
+                        crc_valid,
+                    });
+                }
+
+                results
+            }
+        }
+    }
 }
 
+#[cfg(feature = "hal")]
 #[derive(Clone, Copy, defmt::Format)]
 pub struct BpskConfig {
     pub frequency: u32,
@@ -236,6 +381,7 @@ pub struct BpskConfig {
     pub packet: BpskPacket,
 }
 
+#[cfg(feature = "hal")]
 impl Default for BpskConfig {
     fn default() -> Self {
         Self {
@@ -250,12 +396,14 @@ impl Default for BpskConfig {
 }
 
 /// BPSK modulation - borrows a Radio, implements Configure + Transmit
+#[cfg(feature = "hal")]
 pub struct BpskRadio<'a, SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> {
     radio: &'a mut Radio<SPI, TX, RX, EN>,
     payload_len: u8,
     config: BpskConfig,
 }
 
+#[cfg(feature = "hal")]
 impl<'a, SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin>
     BpskRadio<'a, SPI, TX, RX, EN>
 {
@@ -283,6 +431,7 @@ impl<'a, SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin>
     }
 }
 
+#[cfg(feature = "hal")]
 impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Configure
     for BpskRadio<'_, SPI, TX, RX, EN>
 {
@@ -315,6 +464,7 @@ impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Configure
     }
 }
 
+#[cfg(feature = "hal")]
 impl<SPI: SpiDevice, TX: OutputPin, RX: OutputPin, EN: OutputPin> Transmit
     for BpskRadio<'_, SPI, TX, RX, EN>
 {
