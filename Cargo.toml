@@ -17,7 +17,9 @@ members = ["examples/stm32wle5jc"]
 default = ["stm32wle5jc"]
 # Hardware abstraction layer, which enables embedded radio driver and all hardware deps
 # When it's disabled, some parts of the code, such as BPSK frame decoding, can be used
-hal = ["dep:embassy-stm32", "dep:embassy-time", "dep:defmt", "dep:cortex-m", "dep:embedded-hal", "dep:embedded-hal-async"]
+hal = ["dep:embassy-stm32", "dep:embassy-time", "dep:cortex-m", "dep:embedded-hal", "dep:embedded-hal-async"]
+# Enable defmt logging and `defmt::Format` derives 
+defmt = ["dep:defmt"]
 # Single-core variants
 stm32wle4c8 = ["hal", "embassy-stm32/stm32wle4c8"]
 stm32wle4cb = ["hal", "embassy-stm32/stm32wle4cb"]

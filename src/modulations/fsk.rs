@@ -1,4 +1,3 @@
-use defmt::{debug, trace};
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
@@ -10,7 +9,8 @@ use crate::{
 
 /// (G)FSK bitrate
 /// Formula: register = 32 * 32 MHz / bitrate
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Bitrate {
     /// Arbitrary bitrate in bits per second
     Custom(u32),
@@ -32,7 +32,8 @@ impl Bitrate {
 }
 
 /// Gaussian pulse shape filter
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum PulseShape {
     /// No filter applied
@@ -48,7 +49,8 @@ pub enum PulseShape {
 }
 
 /// FSK receiver bandwidth
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum Bandwidth {
     Bw4_8kHz = 0x1F,
@@ -75,7 +77,8 @@ pub enum Bandwidth {
 }
 
 /// CRC type for FSK packet params
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum CrcType {
     Off = 0x01,
@@ -90,7 +93,8 @@ pub enum CrcType {
 }
 
 /// Preamble detection length
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum PreambleDetLength {
     /// Preamble detection disabled
@@ -106,7 +110,8 @@ pub enum PreambleDetLength {
 }
 
 /// Address comparison/filtering mode
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum AddrComp {
     /// Address filtering disabled
@@ -118,7 +123,8 @@ pub enum AddrComp {
 }
 
 /// Packet length type
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum PacketLengthType {
     /// Fixed payload length, no header
@@ -129,7 +135,8 @@ pub enum PacketLengthType {
 
 /// Frequency deviation
 /// Formula: register = deviation_hz * 2^25 / 32 MHz
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FreqDev {
     /// Deviation in Hz
     Hz(u32),
@@ -144,7 +151,8 @@ impl FreqDev {
     }
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct FskConfig {
     pub frequency: u32,
     pub bitrate: Bitrate,

@@ -6,7 +6,7 @@ license = "MIT"
 publish = false
 
 [dependencies]
-stm32wl-subghz = { path = "../.." }
+stm32wl-subghz = { path = "../..", features = ["defmt"] }
 
 embassy-stm32 = { version = "0.5.0", features = ["defmt", "stm32wle5jc", "time-driver-tim1", "memory-x", "unstable-pac", "exti", "chrono"] }
 embassy-sync = { version = "0.7.2", features = ["defmt"] }

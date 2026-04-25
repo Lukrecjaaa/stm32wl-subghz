@@ -1,4 +1,3 @@
-use defmt::trace;
 use embassy_stm32::pac;
 use embedded_hal_async::spi::{ErrorType, Operation, SpiBus, SpiDevice};
 

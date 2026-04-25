@@ -1,6 +1,4 @@
 #[cfg(feature = "hal")]
-use defmt::debug;
-#[cfg(feature = "hal")]
 use embedded_hal::digital::OutputPin;
 #[cfg(feature = "hal")]
 use embedded_hal_async::spi::SpiDevice;
@@ -18,7 +16,7 @@ use std::vec::Vec;
 /// BPSK bitrate
 /// Formula: register = (32 * 32_000_000) / bps
 #[derive(Clone, Copy)]
-#[cfg_attr(feature = "hal", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Bitrate {
     /// 100 bits per second
     Bps100,
@@ -41,7 +39,7 @@ impl Bitrate {
 }
 
 #[derive(Clone, Copy)]
-#[cfg_attr(feature = "hal", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CrcType {
     None,
     /// Using a common 0x07 polynomial
@@ -100,7 +98,7 @@ impl CrcType {
 }
 
 #[derive(Clone, Copy)]
-#[cfg_attr(feature = "hal", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Whitening {
     None,
     Ccitt,
@@ -140,7 +138,7 @@ pub struct DecodeResult {
 }
 
 #[derive(Clone, Copy)]
-#[cfg_attr(feature = "hal", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BpskPacket {
     /// No framing, just send raw data
     Raw,
@@ -371,7 +369,8 @@ impl BpskPacket {
 }
 
 #[cfg(feature = "hal")]
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct BpskConfig {
     pub frequency: u32,
     pub bitrate: Bitrate,

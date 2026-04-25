@@ -1,6 +1,9 @@
 #![cfg_attr(feature = "hal", no_std)]
 #![allow(async_fn_in_trait)]
 
+#[macro_use]
+mod fmt;
+
 pub mod modulations;
 
 #[cfg(feature = "hal")]

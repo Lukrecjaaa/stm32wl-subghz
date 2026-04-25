@@ -1,4 +1,3 @@
-use defmt::{debug, trace};
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
@@ -23,7 +22,8 @@ impl Bitrate {
     }
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct MskConfig {
     pub frequency: u32,
     pub bitrate: Bitrate,

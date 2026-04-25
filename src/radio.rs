@@ -1,4 +1,3 @@
-use defmt::{debug, trace};
 use embassy_stm32::pac;
 use embassy_time::Timer;
 use embedded_hal::digital::OutputPin;
@@ -66,7 +65,8 @@ pub mod irq {
 }
 
 /// PA ramp time for SetTxParams
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum RampTime {
     Us10 = 0x00,
@@ -80,7 +80,8 @@ pub enum RampTime {
 }
 
 /// Which power amplifier to use
-#[derive(Clone, Copy, defmt::Format, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PaSelection {
     /// -17 to +14 dBm
     LowPower,
@@ -89,7 +90,8 @@ pub enum PaSelection {
 }
 
 /// RX gain setting (register 0x08AC)
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum RxGain {
     /// Power saving gain
@@ -99,7 +101,8 @@ pub enum RxGain {
 }
 
 /// Standby mode clock source
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum StandbyMode {
     /// Internal 13 MHz RC oscillator
@@ -109,7 +112,8 @@ pub enum StandbyMode {
 }
 
 /// Packet type selector
-#[derive(Clone, Copy, defmt::Format, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum PacketType {
     Fsk = 0x00,
@@ -119,7 +123,8 @@ pub enum PacketType {
 }
 
 /// Sleep configuration
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SleepConfig {
     /// Start directly in warm start (retain config)
     pub warm_start: bool,
@@ -128,7 +133,8 @@ pub struct SleepConfig {
 }
 
 /// Regulator mode
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum RegulatorMode {
     /// Only LDO (default after reset)
@@ -138,7 +144,8 @@ pub enum RegulatorMode {
 }
 
 /// Fallback mode after TX/RX completes
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum FallbackMode {
     /// Radio goes into STDBY_RC after TX or RX
@@ -150,7 +157,8 @@ pub enum FallbackMode {
 }
 
 /// CAD exit mode
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum CadExitMode {
     /// CAD only, return to standby
@@ -160,7 +168,7 @@ pub enum CadExitMode {
 }
 
 /// Image calibration frequency ranges
-#[derive(defmt::Format)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct ImageCalFreq {
     pub freq1: u8,
     pub freq2: u8,
@@ -195,7 +203,8 @@ impl ImageCalFreq {
 }
 
 /// LoRa packet status returned by get_packet_status in LoRa mode
-#[derive(Clone, Copy, Debug, defmt::Format)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct LoraPacketStatus {
     /// RSSI of the last packet in dBm (value / -2)
     pub rssi: i16,
@@ -206,7 +215,8 @@ pub struct LoraPacketStatus {
 }
 
 /// FSK packet status returned by get_packet_status in FSK mode
-#[derive(Clone, Copy, Debug, defmt::Format)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct FskPacketStatus {
     pub rx_status: u8,
     /// RSSI when sync word was detected, in dBm (value / -2)
@@ -216,7 +226,8 @@ pub struct FskPacketStatus {
 }
 
 /// Statistics counters
-#[derive(Clone, Copy, Debug, defmt::Format)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Stats {
     pub packets_received: u16,
     pub packets_crc_error: u16,
@@ -225,7 +236,8 @@ pub struct Stats {
 }
 
 /// Tracks which state the radio is in
-#[derive(Clone, Copy, Debug, defmt::Format, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RadioState {
     /// Just powered on or reset, before standby
     Startup,

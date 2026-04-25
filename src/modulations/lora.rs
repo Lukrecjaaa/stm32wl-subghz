@@ -1,4 +1,3 @@
-use defmt::{debug, trace};
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiDevice;
 
@@ -6,7 +5,8 @@ use crate::error::RadioError;
 use crate::radio::{PaSelection, PacketType, Radio, RampTime, RxGain, irq};
 use crate::traits::{Configure, Receive, Transmit};
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum SpreadingFactor {
     SF5 = 0x05,
@@ -19,7 +19,8 @@ pub enum SpreadingFactor {
     SF12 = 0x0c,
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum Bandwidth {
     Bw7_8kHz = 0x00,
@@ -34,7 +35,8 @@ pub enum Bandwidth {
     Bw500kHz = 0x06,
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum CodingRate {
     /// No forward error correction coding
@@ -45,7 +47,8 @@ pub enum CodingRate {
     Cr48 = 0x04,
 }
 
-#[derive(Clone, Copy, defmt::Format)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct LoraConfig {
     pub frequency: u32,
     pub sf: SpreadingFactor,
